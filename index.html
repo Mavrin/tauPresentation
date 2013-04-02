@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Как мы создавали свой Framework и почему?</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=680, user-scalable=no">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <link rel="stylesheet" href="shower/themes/ribbon/styles/screen.css">
+</head>
+<body class="list">
+<header class="caption">
+    <h1>Как мы создавали свой Framework и почему?</h1>
+
+    <p><a href="">Константин Кривленя</a></p>
+</header>
+<section class="slide shout">
+    <div>
+        <h2>Почему мы решили написать свой framework.</h2>
+    </div>
+</section>
+<section class="slide">
+    <div>
+        <h2>Пролог.</h2>
+        <ol>
+            <li class="next">Страницы на aspx c вкраплением ExtJs 3.x компонентов</li>
+            <li class="next">Сложность покрытия unit тестами клиентской части.</li>
+            <li class="next">Неудобство кастомизировать и создавать собственные компоненты</li>
+            <li class="next">Тежелый DOM. На большом количестве данных - проблемы с производителностью.</li>
+        </ol>
+
+    </div>
+</section>
+<section class="slide">
+    <div>
+        <h2>Поиск алтернатив в начале 2011.</h2>
+        <ol>
+            <li class="next">ExtJs 3.x недостатки описаны выше</li>
+            <li class="next">Angular.js и ember.js, только начинают развиваться, нет даже первых стабильных версий.</li>
+            <li class="next">Backbone.js, тоже только начало. Доволи строгая модель данных. Не очень подходит к нашей
+                доменной области.
+            </li>
+            <li class="next">В общем тяжелый 2011 год</li>
+        </ol>
+
+    </div>
+</section>
+<section class="slide">
+    <div>
+        <h2>Вывод</h2>
+        <img style="float: right" src="img/quarte1.jpg">
+        <div class="next">Изобретай колесо только в двух случаяx:
+            <ul>
+                <li>Колеса не существует</li>
+                <li>Все существующие колеса квадратные</li>
+            </ul>
+        </div>
+    </div>
+</section>
+<section class="slide shout">
+    <div>
+        <h2>Что мы хотели от framework.</h2>
+    </div>
+</section>
+<section class="slide">
+    <div>
+        <h2>Что же нужно для счастья от современного framework</h2>
+        <ol>
+            <li>Слабосвязная архитектура. Маштабируемость.</li>
+            <li class="next">Легкий и удобный способ покрытия тестами.</li>
+            <li class="next">Низкий порог вхождения.</li>
+        </ol>
+    </div>
+</section>
+<section class="slide">
+    <div>
+        <h2>Архитектура framework</h2>
+        <ol>
+            <li>Событийно-ориентированная модель</li>
+            <li class="next">Dependency injection</li>
+            <li class="next">Traits</li>
+        </ol>
+    </div>
+</section>
+<section class="slide">
+    <div>
+        <h2>Преимущества событийно-ориентированной модели</h2>
+        <ol>
+            <li>Слабая связность компонетнов и его частей. Любая функциональность может быть преиспользована. Легко
+                отключена или подключена.
+            </li>
+            <li class="next">Хорошо тестируемый код. Может быть протестирована, как отдельные части системы, так и в
+                контексте.
+            </li>
+            <li class="next">Проверенный временем подход.</li>
+        </ol>
+    </div>
+</section>
+<section class="slide">
+    <div>
+        <h2>Схема связей компонентов</h2>
+        <img height="465" src="img/events-model.png" alt="structure">
+    </div>
+</section>
+<section class="slide">
+    <div>
+        <h2>Чуть-чуть про релизцию</h2>
+        Слайд или два про реализаци, и у помянуть test framework
+    </div>
+</section>
+<section class="slide shout">
+    <div>
+        <h2 style="font-size:100px;">Проблемы framework основанного на модели событий, и как мы с ними боремся.</h2>
+    </div>
+</section>
+<section class="slide">
+    <div>
+        Часто необходимо было реагировать на склейку несколький событий.
+        Придилось писать код вроде ниже приведенного:
+        <pre>
+            <code>bus.on('afterRender',function(event,$element){</code>
+            <code> bus.on('settingsChanged',function(event,settings){</code>
+            <code> /**Какой-то код**/</code>
+            <code> })</code>
+            <code>})</code>
+        </pre>
+    </div>
+</section>
+<section class="slide shout">
+    <div>
+        <h2>Что делать?</h2>
+    </div>
+</section>
+<section class="slide shout">
+    <div>
+        <h2>Пишем свой язык описания склейки событий.</h2>
+    </div>
+</section>
+<section class="slide">
+    <div>
+        <h2>Возможности языка</h2>
+            <div>Постой способ подписки на события, описываем функции как property объекта
+                <pre>
+                    <code>"bus afterRender":function(evt,data) {</code>
+                    <code> /**реагируем на события после рендера шаблона**/</code>
+                    <code>}</code>
+                </pre>
+            </div>
+    </div>
+</section>
+<section class="slide">
+    <div>
+        <h2>Возможности языка</h2>
+            <div>Склеиваем события, произошедшие однакратно.
+                <pre>
+                    <code>"bus afterRender + settingsChanged":function(evt,</code>
+                        <code>    $element,</code><code>    settings) {</code>
+                    <code>    /**реагируем на события рендера шаблона и</code><code> изменения настроек**/</code>
+                    <code>}</code>
+                </pre>
+            </div>
+    </div>
+</section>
+<section class="slide">
+    <div>
+        <h2>Возможности языка</h2>
+        <div>Используем данные события произошедшего отнакратно с повторяющимся событием.
+                <pre>
+                    <code>"bus afterRender:last + settingsChanged":function(evt,</code>
+                        <code>    $element,</code><code>    settings) {</code>
+                    <code>   /**реагируем на события рендера шаблона</code>(данные с послденего проброшеного
+                        события)<code>и изменения настроек**/</code>
+                    <code>}</code>
+                </pre>
+        </div>
+    </div>
+</section>
+<section class="slide">
+    <div>
+        <h2>Возможности языка</h2>
+        <div>Используем порядок возникновения событий.
+                <pre>
+                    <code>"bus settingsChanged > afterRender":function(evt) {</code>
+                    <code>   /**реагируем на события рендера шаблона</code>и изменения настроек<code>учитывая порядок возниконовения**/</code>
+                    <code>}</code>
+                </pre>
+        </div>
+    </div>
+</section>
+<section class="slide">
+    <div>
+        <h2>Возможности языка</h2>
+        <div>А можно три события склеить? Да кончно можно. Даже так:
+                <pre>
+                    <code>"bus settingsChanged + ... +n":function(evt,data,..,nData) {</code>
+                    <code>   /**Данные получаем в аргументах**/</code>
+                    <code>}</code>
+                </pre>
+        </div>
+    </div>
+</section>
+<section class="slide">
+    <div>
+        <h2>Еще проблемы? Да, гибкость.</h2>
+        <div>
+            Каждый extension может генерировать и реагировать на события.
+            Поэтому делаем соглашения, события для других extensions может генеривровать либо main extension, либо model
+            extension. В дополнительных extensions создаем точки входа, которые необходимы для его работы.
+        </div>
+    </div>
+</section>
+<section class="slide">
+    <div>
+        <h2>Profit?</h2>
+        <ol>
+            <li>Получи framework, который решает наши праблемы.</li>
+            <li class="next">Гибкий.</li>
+            <li class="next">Легко маштабируемый.</li>
+            <li class="next">Тестируемый.</li>
+            <li class="next">А что еще нужно?</li>
+        </ol>
+    </div>
+</section>
+<section class="slide shout">
+    <div>
+        <h2>Вопросы?</h2>
+    </div>
+</section>
+
+<div class="progress">
+    <div></div>
+</div>
+<script src="shower/shower.min.js"></script>
+</body>
+</html>
